@@ -46,14 +46,61 @@ export function AppDataProvider({ children }) {
       try {
         const { data: svcData, error: svcError } = await supabase.from('services').select('*');
         if (svcError) throw svcError;
-        if (svcData && svcData.length > 0) setServices(svcData);
+        
+        let hasSupabaseData = false;
+
+        if (svcData && svcData.length > 0) {
+          setServices(svcData);
+          hasSupabaseData = true;
+        }
 
         const { data: portData, error: portError } = await supabase.from('portfolio').select('*');
         if (portError) throw portError;
-        if (portData && portData.length > 0) setPortfolio(portData.map(p => p.url));
+        if (portData && portData.length > 0) {
+          setPortfolio(portData.map(p => p.url));
+          hasSupabaseData = true;
+        }
 
-        const { data: heroData } = await supabase.from('settings').select('*').eq('key', 'heroImage').single();
-        if (heroData) setHeroImage(heroData.value);
+        const { data: heroData } = await supabase.from('settings').select('*').eq('key', 'heroImage').maybeSingle();
+        if (heroData) {
+          setHeroImage(heroData.value);
+        }
+
+        // --- MIGRATION LOGIC ---
+        // Jika tabel Supabase benar-benar kosong, kita ambil dari localStorage lalu upload ke Supabase!
+        if (!hasSupabaseData) {
+          console.log("Supabase masih kosong! Sedang memindahkan data dari penyimpanan lokal ke Supabase...");
+          
+          let currentSvc = initialServices;
+          const localSvc = localStorage.getItem('putri_services');
+          if (localSvc) currentSvc = JSON.parse(localSvc);
+          setServices(currentSvc);
+          await supabase.from('services').insert(currentSvc);
+
+          let currentPort = initialPortfolio;
+          const localPort = localStorage.getItem('putri_portfolio');
+          if (localPort) currentPort = JSON.parse(localPort);
+          setPortfolio(currentPort);
+          
+          if (currentPort.length > 0) {
+            const portInserts = currentPort.map(url => ({ url }));
+            await supabase.from('portfolio').insert(portInserts);
+          }
+
+          let currentHero = "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1471&q=80";
+          const localHero = localStorage.getItem('putri_hero');
+          if (localHero) currentHero = localHero;
+          setHeroImage(currentHero);
+          await supabase.from('settings').upsert({ key: 'heroImage', value: currentHero });
+          
+          const localUsers = localStorage.getItem('putri_users');
+          if (localUsers) {
+             const parsedUsers = JSON.parse(localUsers);
+             setUsers(parsedUsers);
+             await supabase.from('users').insert(parsedUsers);
+          }
+          console.log("Migrasi data selesai!");
+        }
         
       } catch (err) {
         console.error("Error fetching from Supabase:", err);
