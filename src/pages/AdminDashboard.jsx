@@ -20,6 +20,42 @@ export default function AdminDashboard() {
   const [newImageUrl, setNewImageUrl] = useState('');
   const [editingService, setEditingService] = useState(null);
 
+  const compressImage = (file, maxWidth, maxHeight, quality) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height *= maxWidth / width));
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width *= maxHeight / height));
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = (error) => reject(error);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('userRole');
     localStorage.removeItem('userName');
@@ -219,15 +255,16 @@ export default function AdminDashboard() {
                         type="file" 
                         accept="image/*" 
                         className="form-input" 
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files[0];
                           if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              updateHeroImage(reader.result);
+                            try {
+                              const compressed = await compressImage(file, 1200, 1200, 0.7);
+                              updateHeroImage(compressed);
                               e.target.value = '';
-                            };
-                            reader.readAsDataURL(file);
+                            } catch (err) {
+                              alert("Gagal memproses gambar!");
+                            }
                           }
                         }} 
                       />
@@ -244,14 +281,15 @@ export default function AdminDashboard() {
                       type="file" 
                       accept="image/*" 
                       className="form-input" 
-                      onChange={(e) => {
+                      onChange={async (e) => {
                         const file = e.target.files[0];
                         if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            setNewImageUrl(reader.result);
-                          };
-                          reader.readAsDataURL(file);
+                          try {
+                            const compressed = await compressImage(file, 800, 800, 0.7);
+                            setNewImageUrl(compressed);
+                          } catch (err) {
+                            alert("Gagal memproses gambar!");
+                          }
                         }
                       }} 
                     />
