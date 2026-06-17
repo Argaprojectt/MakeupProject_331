@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Info } from 'lucide-react';
 
-export default function PriceEstimator({ services }) {
+export default function PriceEstimator({ services, onBookClick }) {
   const [selectedBaseService, setSelectedBaseService] = useState(null);
   const [addons, setAddons] = useState({
     hairDo: false,
@@ -157,7 +157,7 @@ export default function PriceEstimator({ services }) {
               <span style={{ fontSize: '1.1rem', fontWeight: '500' }}>Estimated Total</span>
               <span style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--color-accent)', lineHeight: 1 }}>{formatIDR(calculateTotal())}</span>
             </div>
-            <button className="btn btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }} onClick={() => document.getElementById('btn-book-now')?.click()}>
+            <button className="btn btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }} onClick={() => onBookClick ? onBookClick() : document.getElementById('btn-book-now')?.click()}>
               Book This Package
             </button>
             <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-secondary)', fontSize: '0.75rem', marginTop: '1rem', justifyContent: 'center' }}>

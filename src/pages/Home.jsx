@@ -165,7 +165,7 @@ export default function Home() {
       {/* Price Estimator */}
       <section className="section">
         <div className="container">
-          <PriceEstimator services={services} />
+          <PriceEstimator services={services} onBookClick={handleBookClick} />
         </div>
       </section>
 
