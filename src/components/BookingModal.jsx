@@ -23,22 +23,15 @@ export default function BookingModal({ isOpen, onClose, services }) {
       setStep(2);
     } else {
       if (!formData.service || !formData.date) return alert('Please select service and date');
-      
-      // Simulating a successful booking submission to backend/localStorage
-      // In a real app, this would call an API
-      const bookings = JSON.parse(localStorage.getItem('putri_mock_bookings') || '[]');
-      bookings.push({
-        id: `BK-${Math.floor(1000 + Math.random() * 9000)}`,
-        client: formData.name,
-        service: formData.service,
-        date: formData.date,
-        time: formData.time,
-        status: 'Pending'
-      });
-      localStorage.setItem('putri_mock_bookings', JSON.stringify(bookings));
-      
       setStep(3);
     }
+  };
+
+  const handleWhatsAppRedirect = () => {
+    const message = `Halo Kak, saya ingin booking layanan makeup dengan detail berikut:\n\nNama: ${formData.name}\nLayanan: ${formData.service}\nTanggal: ${formData.date}\nJam: ${formData.time}\nCatatan: ${formData.notes || '-'}\n\nMohon info untuk proses DP/Pembayarannya. Terima kasih!`;
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/6281255840188?text=${encodedMessage}`, '_blank');
+    resetAndClose();
   };
 
   const resetAndClose = () => {
@@ -79,9 +72,12 @@ export default function BookingModal({ isOpen, onClose, services }) {
                 <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--color-accent-light)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
                   <Calendar size={32} />
                 </div>
-                <h4 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Thank You, {formData.name}!</h4>
-                <p style={{ color: 'var(--color-secondary)', marginBottom: '2rem' }}>Your appointment request for {formData.date} has been received. Our team will contact you shortly to confirm.</p>
-                <button className="btn btn-primary" onClick={resetAndClose} style={{ width: '100%' }}>Done</button>
+                <h4 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Satu Langkah Lagi!</h4>
+                <p style={{ color: 'var(--color-secondary)', marginBottom: '2rem' }}>Detail booking untuk {formData.name} sudah siap dikirim. Silakan lanjut ke WhatsApp untuk konfirmasi tanggal dan pembayaran DP.</p>
+                <button className="btn btn-primary" onClick={handleWhatsAppRedirect} style={{ width: '100%', backgroundColor: '#25D366', borderColor: '#25D366', color: '#fff', fontSize: '1rem', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                  Lanjut ke Pembayaran via WA
+                </button>
+                <button className="btn btn-outline" onClick={resetAndClose} style={{ width: '100%', marginTop: '1rem' }}>Batal</button>
               </div>
             ) : (
               <form onSubmit={handleBook}>
